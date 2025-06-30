@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: crm-backend
+    env: node
+    plan: free
+    buildCommand: 'npm install'
+    startCommand: 'npm start'
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+    autoDeploy: true
+    rootDir: . 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tabs, Tab, Card, Button, Table, Spinner, Alert, Row, Col, Form } from 'react-bootstrap';
+import { Tabs, Tab, Card, Button, Table, Spinner, Alert, Row, Col } from 'react-bootstrap';
 import { saveAs } from 'file-saver';
 
 // Usa variable de entorno o por defecto http://localhost:3001
@@ -57,22 +57,6 @@ function Reportes() {
     const response = await fetch(`${BACKEND_URL}/api/reportes/inventario/pdf/filtrado?${params}`);
     const blob = await response.blob();
     saveAs(blob, `inventario_${categoria}.pdf`);
-    setLoading(false);
-  };
-
-  // Exportar todos los documentos
-  const exportarDocumentosExcel = async () => {
-    setLoading(true);
-    const response = await fetch(`${BACKEND_URL}/api/reportes/documentos/excel`);
-    const blob = await response.blob();
-    saveAs(blob, 'documentos.xlsx');
-    setLoading(false);
-  };
-  const exportarDocumentosPDF = async () => {
-    setLoading(true);
-    const response = await fetch(`${BACKEND_URL}/api/reportes/documentos/pdf`);
-    const blob = await response.blob();
-    saveAs(blob, 'documentos.pdf');
     setLoading(false);
   };
 

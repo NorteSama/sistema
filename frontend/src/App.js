@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Navbar, Nav, Container, NavDropdown } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Importar componentes
-import Alertas from './components/Alertas';
 import Reportes from './components/Reportes';
 import SubirDocumento from './components/SubirDocumento';
 import VerDocumentos from './components/VerDocumentos';

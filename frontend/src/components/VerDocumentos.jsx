@@ -9,23 +9,7 @@ function VerDocumentos() {
   const [documentos, setDocumentos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mensaje, setMensaje] = useState('');
-  const [equipos, setEquipos] = useState([]);
-  const [equipoId, setEquipoId] = useState(1);
   const [tipoFiltro, setTipoFiltro] = useState('');
-
-  // Cargar equipos al inicio
-  useEffect(() => {
-    async function fetchEquipos() {
-      try {
-        const res = await axios.get('/api/equipos');
-        setEquipos(res.data);
-        if (res.data.length > 0) setEquipoId(res.data[0].id);
-      } catch (error) {
-        setMensaje('Error al cargar los equipos');
-      }
-    }
-    fetchEquipos();
-  }, []);
 
   // Cargar documentos cuando cambia el equipo seleccionado
   useEffect(() => {

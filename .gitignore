@@ -1,0 +1,22 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Producción
+dist/
+build/
+
+# Archivos de entorno
+.env
+.env.local
+.env.*.local
+
+# Subidas y archivos grandes
+uploads/
+*.log
+
+# Otros
+.DS_Store
+*.zip
+*.tar.gz

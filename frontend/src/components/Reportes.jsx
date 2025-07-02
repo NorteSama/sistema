@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tabs, Tab, Card, Button, Table, Spinner, Alert, Row, Col } from 'react-bootstrap';
+import { Tabs, Tab, Card, Button, Table, Spinner, Alert, Row, Col, Form, Modal } from 'react-bootstrap';
 import { saveAs } from 'file-saver';
 
 // Usa variable de entorno o por defecto http://localhost:3001
@@ -18,6 +18,8 @@ function Reportes() {
   const [documentos, setDocumentos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewImg, setPreviewImg] = useState(null);
 
   useEffect(() => {
     async function fetchEquipos() {
@@ -60,6 +62,22 @@ function Reportes() {
     setLoading(false);
   };
 
+  // Exportar todos los documentos
+  const exportarDocumentosExcel = async () => {
+    setLoading(true);
+    const response = await fetch(`${BACKEND_URL}/api/reportes/documentos/excel`);
+    const blob = await response.blob();
+    saveAs(blob, 'documentos.xlsx');
+    setLoading(false);
+  };
+  const exportarDocumentosPDF = async () => {
+    setLoading(true);
+    const response = await fetch(`${BACKEND_URL}/api/reportes/documentos/pdf`);
+    const blob = await response.blob();
+    saveAs(blob, 'documentos.pdf');
+    setLoading(false);
+  };
+
   // Descargar todas las fotos
   const exportarFotosZIP = async () => {
     setLoading(true);
@@ -91,7 +109,7 @@ function Reportes() {
                           {loading ? <Spinner animation="border" size="sm" /> : 'Descargar PDF'}
                         </Button>
                       </div>
-                      <div style={{ overflowX: 'auto' }}>
+                      <div style={{ maxHeight: '350px', overflowY: 'auto', background: '#fffbe7', borderRadius: 12, boxShadow: '0 2px 12px #ffe08255', padding: 8, marginBottom: 8 }}>
                         <Table responsive bordered hover size="sm" className="mb-0" style={{ borderRadius: 12, borderCollapse: 'separate', borderSpacing: 0 }}>
                           <thead style={{ background: '#FFF2B2' }}>
                             <tr>
@@ -135,45 +153,47 @@ function Reportes() {
             <Card.Header as="h5" className="bg-white border-0" style={{ color: '#A86B00', fontWeight: 700 }}>Todos los Documentos</Card.Header>
             <Card.Body>
               <div style={{ overflowX: 'auto' }}>
-                <Table responsive bordered hover size="sm" className="mb-0" style={{ borderRadius: 12, borderCollapse: 'separate', borderSpacing: 0 }}>
-                  <thead style={{ background: '#FFF2B2' }}>
-                    <tr>
-                      <th style={{ color: '#A86B00', fontWeight: 700 }}>ID</th>
-                      <th style={{ color: '#A86B00', fontWeight: 700 }}>Tipo</th>
-                      <th style={{ color: '#A86B00', fontWeight: 700 }}>Archivo</th>
-                      <th style={{ color: '#A86B00', fontWeight: 700 }}>Fecha de subida</th>
-                      <th style={{ color: '#A86B00', fontWeight: 700 }}>Fecha de vencimiento</th>
-                      <th style={{ color: '#A86B00', fontWeight: 700 }}>Descargar</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {documentos.length === 0 ? (
-                      <tr><td colSpan={6} className="text-center text-muted">No hay documentos registrados.</td></tr>
-                    ) : (
-                      documentos.map(doc => (
-                        <tr key={doc.id}>
-                          <td>{doc.id}</td>
-                          <td>{doc.tipo}</td>
-                          <td>{doc.url_archivo?.split('/').pop()}</td>
-                          <td>{doc.fecha_subida ? doc.fecha_subida.substring(0, 10) : ''}</td>
-                          <td>{doc.fecha_vencimiento ? doc.fecha_vencimiento.substring(0, 10) : 'N/A'}</td>
-                          <td>
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              style={{ borderRadius: 20, fontWeight: 600 }}
-                              onClick={() => {
-                                window.open(`${BACKEND_URL}/api/documentos/descargar/${doc.id}`, '_blank');
-                              }}
-                            >
-                              Descargar
-                            </Button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </Table>
+                <div style={{ maxHeight: '350px', overflowY: 'auto', background: '#fffbe7', borderRadius: 12, boxShadow: '0 2px 12px #ffe08255', padding: 8, marginBottom: 8 }}>
+                  <Table responsive bordered hover size="sm" className="mb-0" style={{ borderRadius: 12, borderCollapse: 'separate', borderSpacing: 0 }}>
+                    <thead style={{ background: '#FFF2B2' }}>
+                      <tr>
+                        <th style={{ color: '#A86B00', fontWeight: 700 }}>ID</th>
+                        <th style={{ color: '#A86B00', fontWeight: 700 }}>Tipo</th>
+                        <th style={{ color: '#A86B00', fontWeight: 700 }}>Archivo</th>
+                        <th style={{ color: '#A86B00', fontWeight: 700 }}>Fecha de subida</th>
+                        <th style={{ color: '#A86B00', fontWeight: 700 }}>Fecha de vencimiento</th>
+                        <th style={{ color: '#A86B00', fontWeight: 700 }}>Descargar</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {documentos.length === 0 ? (
+                        <tr><td colSpan={6} className="text-center text-muted">No hay documentos registrados.</td></tr>
+                      ) : (
+                        documentos.map(doc => (
+                          <tr key={doc.id}>
+                            <td>{doc.id}</td>
+                            <td>{doc.tipo}</td>
+                            <td>{doc.url_archivo?.split('/').pop()}</td>
+                            <td>{doc.fecha_subida ? doc.fecha_subida.substring(0, 10) : ''}</td>
+                            <td>{doc.fecha_vencimiento ? doc.fecha_vencimiento.substring(0, 10) : 'N/A'}</td>
+                            <td>
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                style={{ borderRadius: 20, fontWeight: 600 }}
+                                onClick={() => {
+                                  window.open(`${BACKEND_URL}/api/documentos/descargar/${doc.id}`, '_blank');
+                                }}
+                              >
+                                Descargar
+                              </Button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </Table>
+                </div>
               </div>
             </Card.Body>
           </Card>
@@ -197,14 +217,44 @@ function Reportes() {
                         <Card.Img variant="top" src={`/${doc.url_archivo}`} style={{ maxHeight: 180, objectFit: 'cover', borderRadius: 12 }} />
                         <Card.Body className="d-flex flex-column align-items-center justify-content-end">
                           <Button
+                            variant="outline-primary"
+                            size="sm"
+                            style={{ borderRadius: 20, fontWeight: 600, marginBottom: 8 }}
+                            onClick={() => {
+                              setPreviewImg(`/${doc.url_archivo}`);
+                              setShowPreview(true);
+                            }}
+                          >
+                            Previsualizar
+                          </Button>
+                          <Button
                             variant="outline-secondary"
                             size="sm"
-                            style={{ borderRadius: 20, fontWeight: 600 }}
+                            style={{ borderRadius: 20, fontWeight: 600, marginBottom: 8 }}
                             onClick={() => {
                               window.open(`${BACKEND_URL}/api/documentos/descargar/${doc.id}`, '_blank');
                             }}
                           >
                             Descargar
+                          </Button>
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            style={{ borderRadius: 20, fontWeight: 600 }}
+                            onClick={async () => {
+                              if (window.confirm('¿Seguro que deseas borrar esta foto?')) {
+                                setLoading(true);
+                                try {
+                                  await fetch(`${BACKEND_URL}/api/documentos/${doc.id}`, { method: 'DELETE' });
+                                  setDocumentos(documentos.filter(d => d.id !== doc.id));
+                                } catch (e) {
+                                  setMensaje('Error al borrar la foto');
+                                }
+                                setLoading(false);
+                              }
+                            }}
+                          >
+                            Borrar
                           </Button>
                         </Card.Body>
                       </Card>
@@ -212,6 +262,18 @@ function Reportes() {
                   ))
                 )}
               </Row>
+              <Modal show={showPreview} onHide={() => setShowPreview(false)} centered size="lg" backdrop="static">
+                <Modal.Body style={{ background: '#222', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 0 }}>
+                  {previewImg && (
+                    <img src={previewImg} alt="Previsualización" style={{ maxWidth: '100%', maxHeight: '80vh', margin: 'auto', display: 'block' }} />
+                  )}
+                </Modal.Body>
+                <Modal.Footer style={{ background: '#222', borderTop: 'none' }}>
+                  <Button variant="light" onClick={() => setShowPreview(false)} style={{ borderRadius: 20, fontWeight: 600 }}>
+                    Cerrar
+                  </Button>
+                </Modal.Footer>
+              </Modal>
             </Card.Body>
           </Card>
         </Tab>

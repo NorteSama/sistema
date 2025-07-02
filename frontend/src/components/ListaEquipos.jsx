@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Table, Spinner, Alert, Form, Row, Col, Button } from 'react-bootstrap';
+import { Table, Spinner, Alert, Form, Row, Col, Button, Modal } from 'react-bootstrap';
 import { saveAs } from 'file-saver';
+import EditarEquipo from './EditarEquipo';
 
 function ListaEquipos({ reload }) {
   const [equipos, setEquipos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mensaje, setMensaje] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [equipoAEditar, setEquipoAEditar] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [equipoABorrar, setEquipoABorrar] = useState(null);
   const [filtros, setFiltros] = useState({
     categoria: '',
     existencia: '',
@@ -74,6 +79,63 @@ function ListaEquipos({ reload }) {
     saveAs(blob, `inventario_${categoria}.pdf`);
   };
 
+  // Función para abrir modal de editar equipo
+  const handleEditarEquipo = (equipo) => {
+    setEquipoAEditar(equipo);
+    setShowEditModal(true);
+  };
+
+  // Función para cerrar modal de editar equipo
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setEquipoAEditar(null);
+  };
+
+  // Función para confirmar edición de equipo
+  const handleEquipoEditado = () => {
+    // Recargar la lista de equipos
+    fetchEquipos();
+  };
+
+  // Función para abrir modal de confirmación de borrado
+  const handleBorrarEquipo = (equipo) => {
+    setEquipoABorrar(equipo);
+    setShowDeleteModal(true);
+  };
+
+  // Función para cerrar modal de confirmación de borrado
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setEquipoABorrar(null);
+  };
+
+  // Función para confirmar borrado de equipo
+  const confirmarBorrarEquipo = async () => {
+    try {
+      await axios.delete(`/api/equipos/${equipoABorrar.id}`);
+      setMensaje('Equipo eliminado correctamente');
+      handleCloseDeleteModal();
+      // Recargar la lista de equipos
+      fetchEquipos();
+      setTimeout(() => setMensaje(''), 3000);
+    } catch (error) {
+      setMensaje(error.response?.data?.error || 'Error al eliminar el equipo');
+    }
+  };
+
+  // Función para recargar equipos
+  const fetchEquipos = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get('/api/equipos');
+      setEquipos(res.data);
+      setMensaje('');
+    } catch (error) {
+      setMensaje('Error al cargar los equipos');
+    }
+    setLoading(false);
+  };
+
   // Filtrar equipos por cada categoría específica
   const categorias = [
     { key: 'laboratorio_central', label: 'Laboratorio Central' },
@@ -85,8 +147,14 @@ function ListaEquipos({ reload }) {
 
   return (
     <div>
-      <h3>Inventario de Equipos</h3>
-      <Form className="mb-3">
+      {/* <h3>Inventario de Equipos</h3> */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 20 }}>
+        <img src="/Logo_GBC.jpg" alt="Logo GBC" style={{ maxWidth: 400, width: '100%', height: 'auto', marginBottom: 8, filter: 'drop-shadow(0 2px 8px #FFD700)' }} />
+        <span style={{ fontWeight: 'bold', fontSize: 20, color: '#A86B00', textAlign: 'center', borderBottom: '3px solid #FFD700', paddingBottom: 4 }}>
+          DIVISIÓN: LABORATORIO DE MATERIALES Y CONTROL DE CALIDAD
+        </span>
+      </div>
+      {/* <Form className="mb-3">
         <Row>
           <Col md={2}>
             <Form.Select name="categoria" value={filtros.categoria} onChange={handleFiltro}>
@@ -133,8 +201,7 @@ function ListaEquipos({ reload }) {
             <Button variant="outline-secondary" onClick={limpiarFiltros} className="w-100">Limpiar</Button>
           </Col>
         </Row>
-      </Form>
-      {/* Filtros y botones de exportación aquí si lo deseas */}
+      </Form> */}
       {mensaje && <Alert variant="danger">{mensaje}</Alert>}
       {loading ? (
         <Spinner animation="border" />
@@ -153,37 +220,88 @@ function ListaEquipos({ reload }) {
               {equiposCat.length === 0 ? (
                 <Alert variant="info">No hay equipos registrados en esta sección.</Alert>
               ) : (
-                <Table striped bordered hover>
-                  <thead>
-                    <tr style={{ backgroundColor: '#FFF2B2' }}>
-                      <th style={{ color: '#A86B00' }}>CATEGORÍA</th>
-                      <th style={{ color: '#A86B00' }}>EXISTENCIA</th>
-                      <th style={{ color: '#A86B00' }}>EQUIPO</th>
-                      <th style={{ color: '#A86B00' }}>DESCRIPCIÓN</th>
-                      <th style={{ color: '#A86B00' }}>MARCA</th>
-                      <th style={{ color: '#A86B00' }}>MODELO</th>
-                      <th style={{ color: '#A86B00' }}>SUBCATEGORÍA</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {equiposCat.map(eq => (
-                      <tr key={eq.id}>
-                        <td>{eq.categoria}</td>
-                        <td>{eq.existencia}</td>
-                        <td>{eq.nombre}</td>
-                        <td>{eq.descripcion}</td>
-                        <td>{eq.marca}</td>
-                        <td>{eq.modelo}</td>
-                        <td>{eq.subcategoria}</td>
+                <div style={{ maxHeight: '400px', overflowY: 'auto', width: '100%' }}>
+                  <Table striped bordered hover>
+                    <thead>
+                      <tr style={{ backgroundColor: '#FFF2B2' }}>
+                        <th style={{ color: '#A86B00' }}>CATEGORÍA</th>
+                        <th style={{ color: '#A86B00' }}>EXISTENCIA</th>
+                        <th style={{ color: '#A86B00' }}>EQUIPO</th>
+                        <th style={{ color: '#A86B00' }}>DESCRIPCIÓN</th>
+                        <th style={{ color: '#A86B00' }}>MARCA</th>
+                        <th style={{ color: '#A86B00' }}>MODELO</th>
+                        <th style={{ color: '#A86B00' }}>SUBCATEGORÍA</th>
+                        <th style={{ color: '#A86B00' }}>ACCIONES</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </Table>
+                    </thead>
+                    <tbody>
+                      {equiposCat.map(eq => (
+                        <tr key={eq.id}>
+                          <td>{eq.categoria}</td>
+                          <td>{eq.existencia}</td>
+                          <td>{eq.nombre}</td>
+                          <td>{eq.descripcion}</td>
+                          <td>{eq.marca}</td>
+                          <td>{eq.modelo}</td>
+                          <td>{eq.subcategoria}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '5px' }}>
+                              <Button
+                                variant="outline-primary"
+                                size="sm"
+                                onClick={() => handleEditarEquipo(eq)}
+                                title="Editar equipo"
+                              >
+                                ✏️
+                              </Button>
+                              <Button
+                                variant="outline-danger"
+                                size="sm"
+                                onClick={() => handleBorrarEquipo(eq)}
+                                title="Eliminar equipo"
+                              >
+                                🗑️
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </div>
               )}
             </div>
           );
         })
       )}
+
+      {/* Modal para editar equipo */}
+      <EditarEquipo
+        show={showEditModal}
+        handleClose={handleCloseEditModal}
+        equipo={equipoAEditar}
+        onEquipoEditado={handleEquipoEditado}
+      />
+
+      {/* Modal de confirmación para borrar equipo */}
+      <Modal show={showDeleteModal} onHide={handleCloseDeleteModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Estás seguro de que deseas eliminar el equipo "{equipoABorrar?.nombre}"?
+          <br />
+          <strong>Esta acción no se puede deshacer.</strong>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseDeleteModal}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={confirmarBorrarEquipo}>
+            Eliminar
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

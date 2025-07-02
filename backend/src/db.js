@@ -27,13 +27,17 @@ CREATE TABLE IF NOT EXISTS equipos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(255) NOT NULL,
   descripcion TEXT,
+  existencia INT DEFAULT 0,
+  marca VARCHAR(255),
+  modelo VARCHAR(255),
+  subcategoria VARCHAR(255),
   ubicacion VARCHAR(255),
   responsable VARCHAR(255),
   fecha_adquisicion DATE,
   estado ENUM('activo', 'inactivo') DEFAULT 'activo',
   fecha_ultima_calibracion DATE,
   fecha_proxima_calibracion DATE,
-  categoria ENUM('campo', 'central') DEFAULT 'campo',
+  categoria ENUM('laboratorio_central', 'campo', 'consumible_lab_central', 'consumible_seguridad', 'laboratorio_campo') DEFAULT 'campo',
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -78,6 +82,17 @@ async function initializeDatabase() {
       if (statement.trim()) {
         await connection.execute(statement);
       }
+    }
+    
+    // Actualizar tabla equipos existente si es necesario
+    try {
+      await connection.execute('ALTER TABLE equipos ADD COLUMN IF NOT EXISTS existencia INT DEFAULT 0');
+      await connection.execute('ALTER TABLE equipos ADD COLUMN IF NOT EXISTS marca VARCHAR(255)');
+      await connection.execute('ALTER TABLE equipos ADD COLUMN IF NOT EXISTS modelo VARCHAR(255)');
+      await connection.execute('ALTER TABLE equipos ADD COLUMN IF NOT EXISTS subcategoria VARCHAR(255)');
+      console.log('Tabla equipos actualizada correctamente');
+    } catch (error) {
+      console.log('La tabla equipos ya está actualizada o no existe');
     }
     
     console.log('Base de datos inicializada correctamente');

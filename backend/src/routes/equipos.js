@@ -33,20 +33,67 @@ router.get('/por-tipo/:tipo', async (req, res) => {
 // Crear un nuevo equipo
 router.post('/', async (req, res) => {
   try {
-    const { categoria, existencia, nombre, descripcion, marca, modelo } = req.body;
+    const { categoria, existencia, nombre, descripcion, marca, modelo, subcategoria } = req.body;
     if (!categoria || !existencia || !nombre) {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
     const connection = await createConnection();
     await connection.execute(
-      `INSERT INTO equipos (categoria, existencia, nombre, descripcion, marca, modelo)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [categoria, existencia, nombre, descripcion, marca, modelo]
+      `INSERT INTO equipos (categoria, existencia, nombre, descripcion, marca, modelo, subcategoria)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [categoria, existencia, nombre, descripcion, marca, modelo, subcategoria]
     );
     await connection.end();
     res.json({ mensaje: 'Equipo creado correctamente' });
   } catch (error) {
     res.status(500).json({ error: 'Error al crear el equipo' });
+  }
+});
+
+// Eliminar un equipo
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const connection = await createConnection();
+    const [result] = await connection.execute('DELETE FROM equipos WHERE id = ?', [id]);
+    await connection.end();
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Equipo no encontrado' });
+    }
+    
+    res.json({ mensaje: 'Equipo eliminado correctamente' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al eliminar el equipo' });
+  }
+});
+
+// Actualizar un equipo
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { categoria, existencia, nombre, descripcion, marca, modelo, subcategoria } = req.body;
+    
+    if (!categoria || !existencia || !nombre) {
+      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    }
+    
+    const connection = await createConnection();
+    const [result] = await connection.execute(
+      `UPDATE equipos 
+       SET categoria = ?, existencia = ?, nombre = ?, descripcion = ?, marca = ?, modelo = ?, subcategoria = ?
+       WHERE id = ?`,
+      [categoria, existencia, nombre, descripcion, marca, modelo, subcategoria, id]
+    );
+    await connection.end();
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Equipo no encontrado' });
+    }
+    
+    res.json({ mensaje: 'Equipo actualizado correctamente' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al actualizar el equipo' });
   }
 });
 

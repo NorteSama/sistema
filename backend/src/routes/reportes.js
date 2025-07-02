@@ -136,35 +136,36 @@ router.get('/inventario/pdf', async (req, res) => {
     `);
     await connection.end();
 
+    const { jsPDF } = require('jspdf');
+    require('jspdf-autotable');
     const doc = new jsPDF();
     doc.setFontSize(16);
-    doc.text('Inventario de Equipos', 10, 15);
-    doc.setFontSize(10);
-    let y = 25;
-    doc.text('ID', 10, y);
-    doc.text('Categoría', 25, y);
-    doc.text('Subcategoría', 55, y);
-    doc.text('Existencia', 85, y);
-    doc.text('Equipo', 110, y);
-    doc.text('Descripción', 140, y);
-    doc.text('Marca', 180, y);
-    doc.text('Modelo', 210, y);
-    y += 7;
-    equipos.forEach(eq => {
-      if (y > 270) {
-        doc.addPage();
-        y = 15;
+    doc.text('Inventario de Equipos', 105, 15, { align: 'center' });
+
+    const columns = [
+      { header: 'ID', dataKey: 'id' },
+      { header: 'Categoría', dataKey: 'categoria' },
+      { header: 'Subcategoría', dataKey: 'subcategoria' },
+      { header: 'Existencia', dataKey: 'existencia' },
+      { header: 'Equipo', dataKey: 'nombre' },
+      { header: 'Descripción', dataKey: 'descripcion' },
+      { header: 'Marca', dataKey: 'marca' },
+      { header: 'Modelo', dataKey: 'modelo' }
+    ];
+
+    doc.autoTable({
+      columns,
+      body: equipos,
+      startY: 25,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [22, 160, 133] },
+      columnStyles: {
+        descripcion: { cellWidth: 60 },
+        nombre: { cellWidth: 30 },
+        subcategoria: { cellWidth: 30 }
       }
-      doc.text(String(eq.id || ''), 10, y);
-      doc.text(String(eq.categoria || ''), 25, y);
-      doc.text(String(eq.subcategoria || ''), 55, y);
-      doc.text(String(eq.existencia || ''), 85, y);
-      doc.text(String(eq.nombre || ''), 110, y);
-      doc.text(String(eq.descripcion || ''), 140, y);
-      doc.text(String(eq.marca || ''), 180, y);
-      doc.text(String(eq.modelo || ''), 210, y);
-      y += 7;
     });
+
     const pdf = doc.output('arraybuffer');
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=inventario_completo.pdf');
@@ -208,31 +209,33 @@ router.get('/inventario/pdf/filtrado', async (req, res) => {
     const [equipos] = await connection.execute(query, params);
     await connection.end();
 
+    const { jsPDF } = require('jspdf');
+    require('jspdf-autotable');
     const doc = new jsPDF();
     doc.setFontSize(16);
-    doc.text('Inventario de Equipos (Filtrado)', 10, 15);
-    doc.setFontSize(10);
-    let y = 25;
-    doc.text('Categoría', 10, y);
-    doc.text('Existencia', 35, y);
-    doc.text('Equipo', 60, y);
-    doc.text('Descripción', 100, y);
-    doc.text('Marca', 150, y);
-    doc.text('Modelo', 180, y);
-    y += 7;
-    equipos.forEach(eq => {
-      if (y > 270) {
-        doc.addPage();
-        y = 15;
+    doc.text('Inventario de Equipos (Filtrado)', 105, 15, { align: 'center' });
+
+    const columns = [
+      { header: 'Categoría', dataKey: 'categoria' },
+      { header: 'Existencia', dataKey: 'existencia' },
+      { header: 'Equipo', dataKey: 'nombre' },
+      { header: 'Descripción', dataKey: 'descripcion' },
+      { header: 'Marca', dataKey: 'marca' },
+      { header: 'Modelo', dataKey: 'modelo' }
+    ];
+
+    doc.autoTable({
+      columns,
+      body: equipos,
+      startY: 25,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [22, 160, 133] },
+      columnStyles: {
+        descripcion: { cellWidth: 60 },
+        nombre: { cellWidth: 30 }
       }
-      doc.text(String(eq.categoria || ''), 10, y);
-      doc.text(String(eq.existencia || ''), 35, y);
-      doc.text(String(eq.nombre || ''), 60, y);
-      doc.text(String(eq.descripcion || ''), 100, y);
-      doc.text(String(eq.marca || ''), 150, y);
-      doc.text(String(eq.modelo || ''), 180, y);
-      y += 7;
     });
+
     const pdf = doc.output();
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=inventario_filtrado.pdf');

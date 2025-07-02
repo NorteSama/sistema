@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Alert, Spinner } from 'react-bootstrap';
+import { Card, Badge, Alert, Spinner, Row, Col, ListGroup, Table } from 'react-bootstrap';
 
 function Alertas() {
   const [alertas, setAlertas] = useState({
@@ -29,6 +29,12 @@ function Alertas() {
     }
   };
 
+  const getBadgeVariant = (dias) => {
+    if (dias <= 0) return 'danger';
+    if (dias <= 7) return 'warning';
+    return 'info';
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('es-ES');
@@ -53,6 +59,10 @@ function Alertas() {
       </Alert>
     );
   }
+
+  const totalAlertas = alertas.equiposCalibracion.length + 
+                      alertas.documentosVencidos.length + 
+                      alertas.equiposSinCalibracion.length;
 
   return (
     <div>

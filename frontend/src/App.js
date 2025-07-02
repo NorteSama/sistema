@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Navbar, Nav, Container, NavDropdown } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Importar componentes
+import Alertas from './components/Alertas';
 import Reportes from './components/Reportes';
 import SubirDocumento from './components/SubirDocumento';
 import VerDocumentos from './components/VerDocumentos';
@@ -64,50 +65,53 @@ function Home() {
   return (
     <Container>
       <div className="text-center py-5">
-        <h1 className="display-4 mb-4">Sistema de Gestión de Inventario</h1>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+          <img src="/Logo_GBC.jpg" alt="Logo GBC" style={{ height: 90, width: 'auto', objectFit: 'contain', marginBottom: 24 }} />
+          <h1 className="display-4 mb-0" style={{ marginTop: 24 }}>Sistema de Gestión de Inventario</h1>
+        </div>
         <p className="lead mb-4">
           Gestiona tu inventario de equipos de manera eficiente y organizada
         </p>
         
-        <div className="row mt-5">
-          <div className="col-md-4 mb-4">
-            <div className="card h-100">
-              <div className="card-body text-center">
-                <h3 className="card-title">📋 Inventario</h3>
-                <p className="card-text">
-                  Gestiona y consulta el inventario de equipos registrados en el sistema
-                </p>
-                <Link to="/inventario" className="btn btn-primary">
-                  Ver Inventario
-                </Link>
+        <div style={{ maxHeight: '350px', overflowY: 'auto', marginTop: 32, background: '#fffbe7', borderRadius: 16, boxShadow: '0 2px 12px #ffe08255', padding: 24, scrollbarWidth: 'thin' }}>
+          <div className="row mt-3" style={{ minWidth: 0 }}>
+            <div className="col-md-4 mb-4">
+              <div className="card h-100">
+                <div className="card-body text-center">
+                  <h3 className="card-title">📋 Inventario</h3>
+                  <p className="card-text">
+                    Gestiona y consulta el inventario de equipos registrados en el sistema
+                  </p>
+                  <Link to="/inventario" className="btn btn-primary">
+                    Ver Inventario
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className="col-md-4 mb-4">
-            <div className="card h-100">
-              <div className="card-body text-center">
-                <h3 className="card-title">📊 Reportes</h3>
-                <p className="card-text">
-                  Genera reportes en Excel y PDF de tu inventario
-                </p>
-                <Link to="/reportes" className="btn btn-success">
-                  Generar Reportes
-                </Link>
+            <div className="col-md-4 mb-4">
+              <div className="card h-100">
+                <div className="card-body text-center">
+                  <h3 className="card-title">📊 Reportes</h3>
+                  <p className="card-text">
+                    Genera reportes en Excel y PDF de tu inventario
+                  </p>
+                  <Link to="/reportes" className="btn btn-success">
+                    Generar Reportes
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className="col-md-4 mb-4">
-            <div className="card h-100">
-              <div className="card-body text-center">
-                <h3 className="card-title">📁 Documentos</h3>
-                <p className="card-text">
-                  Sube y gestiona documentos asociados a cada equipo
-                </p>
-                <Link to="/documentos/subir" className="btn btn-info">
-                  Subir Documentos
-                </Link>
+            <div className="col-md-4 mb-4">
+              <div className="card h-100">
+                <div className="card-body text-center">
+                  <h3 className="card-title">📁 Documentos</h3>
+                  <p className="card-text">
+                    Sube y gestiona documentos asociados a cada equipo
+                  </p>
+                  <Link to="/documentos/subir" className="btn btn-info">
+                    Subir Documentos
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

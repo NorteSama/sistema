@@ -4,7 +4,6 @@ import { saveAs } from 'file-saver';
 import EditarEquipo from './EditarEquipo';
 
 // Usa variable de entorno o por defecto http://localhost:3001
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 const API_URL = process.env.REACT_APP_API_URL;
 
 const categorias = [
@@ -34,7 +33,7 @@ function Reportes() {
 
   const fetchEquipos = async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/equipos`);
+      const res = await fetch(`${API_URL}/api/equipos`);
       const data = await res.json();
       setEquipos(data);
       localStorage.setItem('equipos_reportes', JSON.stringify(data));
@@ -47,7 +46,7 @@ function Reportes() {
 
   const fetchDocumentos = async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/documentos/all`);
+      const res = await fetch(`${API_URL}/api/documentos/all`);
       const data = await res.json();
       setDocumentos(data);
       localStorage.setItem('documentos_reportes', JSON.stringify(data));
@@ -62,7 +61,7 @@ function Reportes() {
   const exportarExcelCategoria = async (categoria) => {
     setLoading(true);
     const params = new URLSearchParams({ categoria }).toString();
-    const response = await fetch(`${BACKEND_URL}/api/reportes/inventario/excel/filtrado?${params}`);
+    const response = await fetch(`${API_URL}/api/reportes/inventario/excel/filtrado?${params}`);
     const blob = await response.blob();
     saveAs(blob, `inventario_${categoria}.xlsx`);
     setLoading(false);
@@ -70,7 +69,7 @@ function Reportes() {
   const exportarPDFCategoria = async (categoria) => {
     setLoading(true);
     const params = new URLSearchParams({ categoria }).toString();
-    const response = await fetch(`${BACKEND_URL}/api/reportes/inventario/pdf/filtrado?${params}`);
+    const response = await fetch(`${API_URL}/api/reportes/inventario/pdf/filtrado?${params}`);
     const blob = await response.blob();
     saveAs(blob, `inventario_${categoria}.pdf`);
     setLoading(false);
@@ -79,14 +78,14 @@ function Reportes() {
   // Exportar todos los documentos
   const exportarDocumentosExcel = async () => {
     setLoading(true);
-    const response = await fetch(`${BACKEND_URL}/api/reportes/documentos/excel`);
+    const response = await fetch(`${API_URL}/api/reportes/documentos/excel`);
     const blob = await response.blob();
     saveAs(blob, 'documentos.xlsx');
     setLoading(false);
   };
   const exportarDocumentosPDF = async () => {
     setLoading(true);
-    const response = await fetch(`${BACKEND_URL}/api/reportes/documentos/pdf`);
+    const response = await fetch(`${API_URL}/api/reportes/documentos/pdf`);
     const blob = await response.blob();
     saveAs(blob, 'documentos.pdf');
     setLoading(false);
@@ -95,7 +94,7 @@ function Reportes() {
   // Descargar todas las fotos
   const exportarFotosZIP = async () => {
     setLoading(true);
-    const response = await fetch(`${BACKEND_URL}/api/reportes/fotos/zip`);
+    const response = await fetch(`${API_URL}/api/reportes/fotos/zip`);
     const blob = await response.blob();
     saveAs(blob, 'fotos.zip');
     setLoading(false);
@@ -238,7 +237,7 @@ function Reportes() {
                                 size="sm"
                                 style={{ borderRadius: 20, fontWeight: 600 }}
                                 onClick={() => {
-                                  window.open(`${BACKEND_URL}/api/documentos/descargar/${doc.id}`, '_blank');
+                                  window.open(`${API_URL}/api/documentos/descargar/${doc.id}`, '_blank');
                                 }}
                               >
                                 Descargar
@@ -288,7 +287,7 @@ function Reportes() {
                             size="sm"
                             style={{ borderRadius: 20, fontWeight: 600, marginBottom: 8 }}
                             onClick={() => {
-                              window.open(`${BACKEND_URL}/api/documentos/descargar/${doc.id}`, '_blank');
+                              window.open(`${API_URL}/api/documentos/descargar/${doc.id}`, '_blank');
                             }}
                           >
                             Descargar
@@ -301,7 +300,7 @@ function Reportes() {
                               if (window.confirm('¿Seguro que deseas borrar esta foto?')) {
                                 setLoading(true);
                                 try {
-                                  await fetch(`${BACKEND_URL}/api/documentos/${doc.id}`, { method: 'DELETE' });
+                                  await fetch(`${API_URL}/api/documentos/${doc.id}`, { method: 'DELETE' });
                                   setDocumentos(documentos.filter(d => d.id !== doc.id));
                                 } catch (e) {
                                   setMensaje('Error al borrar la foto');

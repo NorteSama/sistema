@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Form, Button, Alert, Card } from 'react-bootstrap';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function SubirDocumento({ equipoId, onDocumentoSubido }) {
   const [archivo, setArchivo] = useState(null);
   const [tipo, setTipo] = useState('');
@@ -26,7 +28,7 @@ function SubirDocumento({ equipoId, onDocumentoSubido }) {
       formData.append('tipo', tipo);
       formData.append('fecha_vencimiento', fechaVencimiento);
 
-      const response = await axios.post(`/api/documentos/${equipoId}`, formData, {
+      const response = await axios.post(`${API_URL}/api/documentos/${equipoId}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 

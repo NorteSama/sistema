@@ -257,3 +257,4 @@ npm start
 - Si tienes problemas con la base de datos, revisa el archivo `backend/src/db.js`.
 - Si necesitas ayuda, contacta al desarrollador. "# sistema" 
 "# sistema" 
+"# sistema" 

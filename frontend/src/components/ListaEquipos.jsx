@@ -4,6 +4,8 @@ import { Table, Spinner, Alert, Form, Row, Col, Button, Modal } from 'react-boot
 import { saveAs } from 'file-saver';
 import EditarEquipo from './EditarEquipo';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function ListaEquipos({ reload }) {
   const [equipos, setEquipos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,17 +23,6 @@ function ListaEquipos({ reload }) {
   });
 
   useEffect(() => {
-    async function fetchEquipos() {
-      setLoading(true);
-      try {
-        const res = await axios.get('/api/equipos');
-        setEquipos(res.data);
-        setMensaje('');
-      } catch (error) {
-        setMensaje('Error al cargar los equipos');
-      }
-      setLoading(false);
-    }
     fetchEquipos();
   }, [reload]);
 
@@ -53,28 +44,28 @@ function ListaEquipos({ reload }) {
 
   const exportarExcel = async () => {
     const params = new URLSearchParams(filtros).toString();
-    const response = await fetch(`/api/reportes/inventario/excel/filtrado?${params}`);
+    const response = await fetch(`${API_URL}/api/reportes/inventario/excel/filtrado?${params}`);
     const blob = await response.blob();
     saveAs(blob, 'inventario_filtrado.xlsx');
   };
 
   const exportarPDF = async () => {
     const params = new URLSearchParams(filtros).toString();
-    const response = await fetch(`/api/reportes/inventario/pdf/filtrado?${params}`);
+    const response = await fetch(`${API_URL}/api/reportes/inventario/pdf/filtrado?${params}`);
     const blob = await response.blob();
     saveAs(blob, 'inventario_filtrado.pdf');
   };
 
   const exportarExcelCategoria = async (categoria) => {
     const params = new URLSearchParams({ categoria }).toString();
-    const response = await fetch(`/api/reportes/inventario/excel/filtrado?${params}`);
+    const response = await fetch(`${API_URL}/api/reportes/inventario/excel/filtrado?${params}`);
     const blob = await response.blob();
     saveAs(blob, `inventario_${categoria}.xlsx`);
   };
 
   const exportarPDFCategoria = async (categoria) => {
     const params = new URLSearchParams({ categoria }).toString();
-    const response = await fetch(`/api/reportes/inventario/pdf/filtrado?${params}`);
+    const response = await fetch(`${API_URL}/api/reportes/inventario/pdf/filtrado?${params}`);
     const blob = await response.blob();
     saveAs(blob, `inventario_${categoria}.pdf`);
   };
@@ -112,7 +103,7 @@ function ListaEquipos({ reload }) {
   // Función para confirmar borrado de equipo
   const confirmarBorrarEquipo = async () => {
     try {
-      await axios.delete(`/api/equipos/${equipoABorrar.id}`);
+      await axios.delete(`${API_URL}/api/equipos/${equipoABorrar.id}`);
       setMensaje('Equipo eliminado correctamente');
       handleCloseDeleteModal();
       // Recargar la lista de equipos
@@ -123,15 +114,29 @@ function ListaEquipos({ reload }) {
     }
   };
 
-  // Función para recargar equipos
   const fetchEquipos = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('/api/equipos');
-      setEquipos(res.data);
+      const res = await axios.get(`${API_URL}/api/equipos`);
+      // Validar que la respuesta sea un array
+      if (Array.isArray(res.data)) {
+        setEquipos(res.data);
+        // Guardar en LocalStorage
+        localStorage.setItem('equipos', JSON.stringify(res.data));
+      } else {
+        setEquipos([]);
+        setMensaje('La respuesta del servidor no es válida.');
+      }
       setMensaje('');
     } catch (error) {
-      setMensaje('Error al cargar los equipos');
+      setMensaje('Error al cargar los equipos. Mostrando datos locales.');
+      // Leer de LocalStorage si hay error
+      const local = localStorage.getItem('equipos');
+      if (local) {
+        setEquipos(JSON.parse(local));
+      } else {
+        setEquipos([]);
+      }
     }
     setLoading(false);
   };
@@ -147,13 +152,13 @@ function ListaEquipos({ reload }) {
 
   return (
     <div>
-      {/* <h3>Inventario de Equipos</h3> */}
+      <h3>Inventario de Equipos</h3>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 20 }}>
         <img src="/Logo_GBC.jpg" alt="Logo GBC" style={{ maxWidth: 400, width: '100%', height: 'auto', marginBottom: 8, filter: 'drop-shadow(0 2px 8px #FFD700)' }} />
-        <span style={{ fontWeight: 'bold', fontSize: 20, color: '#A86B00', textAlign: 'center', borderBottom: '3px solid #FFD700', paddingBottom: 4 }}>
-          DIVISIÓN: LABORATORIO DE MATERIALES Y CONTROL DE CALIDAD
-        </span>
       </div>
+      <Button variant="outline-info" size="sm" style={{ marginBottom: 16 }} onClick={fetchEquipos}>
+        Actualizar datos
+      </Button>
       {/* <Form className="mb-3">
         <Row>
           <Col md={2}>

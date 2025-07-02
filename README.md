@@ -255,4 +255,4 @@ npm start
 
 **¿Dudas?**
 - Si tienes problemas con la base de datos, revisa el archivo `backend/src/db.js`.
-- Si necesitas ayuda, contacta al desarrollador. "# CRM" 
+- Si necesitas ayuda, contacta al desarrollador. "# sistema" 

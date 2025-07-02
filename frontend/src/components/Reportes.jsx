@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, Tab, Card, Button, Table, Spinner, Alert, Row, Col, Form, Modal } from 'react-bootstrap';
 import { saveAs } from 'file-saver';
+import EditarEquipo from './EditarEquipo';
 
 // Usa variable de entorno o por defecto http://localhost:3001
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+const API_URL = process.env.REACT_APP_API_URL;
 
 const categorias = [
   { key: 'laboratorio_central', label: 'Laboratorio Central' },
@@ -20,29 +22,41 @@ function Reportes() {
   const [mensaje, setMensaje] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [previewImg, setPreviewImg] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [equipoAEditar, setEquipoAEditar] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [equipoABorrar, setEquipoABorrar] = useState(null);
 
   useEffect(() => {
-    async function fetchEquipos() {
-      try {
-        const res = await fetch(`${BACKEND_URL}/api/equipos`);
-        const data = await res.json();
-        setEquipos(data);
-      } catch (error) {
-        setMensaje('Error al cargar los equipos');
-      }
-    }
-    async function fetchDocumentos() {
-      try {
-        const res = await fetch(`${BACKEND_URL}/api/documentos/all`);
-        const data = await res.json();
-        setDocumentos(data);
-      } catch (error) {
-        setMensaje('Error al cargar los documentos');
-      }
-    }
     fetchEquipos();
     fetchDocumentos();
   }, []);
+
+  const fetchEquipos = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/equipos`);
+      const data = await res.json();
+      setEquipos(data);
+      localStorage.setItem('equipos_reportes', JSON.stringify(data));
+    } catch (error) {
+      setMensaje('Error al cargar los equipos. Mostrando datos locales.');
+      const local = localStorage.getItem('equipos_reportes');
+      if (local) setEquipos(JSON.parse(local));
+    }
+  };
+
+  const fetchDocumentos = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/documentos/all`);
+      const data = await res.json();
+      setDocumentos(data);
+      localStorage.setItem('documentos_reportes', JSON.stringify(data));
+    } catch (error) {
+      setMensaje('Error al cargar los documentos. Mostrando datos locales.');
+      const local = localStorage.getItem('documentos_reportes');
+      if (local) setDocumentos(JSON.parse(local));
+    }
+  };
 
   // Exportar inventario por categoría
   const exportarExcelCategoria = async (categoria) => {
@@ -87,9 +101,43 @@ function Reportes() {
     setLoading(false);
   };
 
+  const handleEditarEquipo = (equipo) => {
+    setEquipoAEditar(equipo);
+    setShowEditModal(true);
+  };
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setEquipoAEditar(null);
+  };
+  const handleEquipoEditado = () => {
+    fetchEquipos();
+  };
+  const handleBorrarEquipo = (equipo) => {
+    setEquipoABorrar(equipo);
+    setShowDeleteModal(true);
+  };
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setEquipoABorrar(null);
+  };
+  const confirmarBorrarEquipo = async () => {
+    try {
+      await fetch(`${API_URL}/api/equipos/${equipoABorrar.id}`, { method: 'DELETE' });
+      setMensaje('Equipo eliminado correctamente');
+      handleCloseDeleteModal();
+      fetchEquipos();
+      setTimeout(() => setMensaje(''), 3000);
+    } catch (error) {
+      setMensaje('Error al eliminar el equipo');
+    }
+  };
+
   return (
     <div className="container mt-4">
       <h2 className="mb-4">Reportes y Descargas</h2>
+      <Button variant="outline-info" size="sm" style={{ marginBottom: 16 }} onClick={() => { fetchEquipos(); fetchDocumentos(); }}>
+        Actualizar datos
+      </Button>
       {mensaje && <Alert variant="danger">{mensaje}</Alert>}
       <Tabs defaultActiveKey="inventario" className="mb-3" fill>
         <Tab eventKey="inventario" title="Inventario por Categorías">
@@ -120,11 +168,13 @@ function Reportes() {
                               <th style={{ color: '#A86B00', fontWeight: 700 }}>Descripción</th>
                               <th style={{ color: '#A86B00', fontWeight: 700 }}>Marca</th>
                               <th style={{ color: '#A86B00', fontWeight: 700 }}>Modelo</th>
+                              <th style={{ color: '#A86B00', fontWeight: 700 }}>Editar</th>
+                              <th style={{ color: '#A86B00', fontWeight: 700 }}>Borrar</th>
                             </tr>
                           </thead>
                           <tbody>
                             {equiposCat.length === 0 ? (
-                              <tr><td colSpan={7} className="text-center text-muted">No hay equipos registrados.</td></tr>
+                              <tr><td colSpan={9} className="text-center text-muted">No hay equipos registrados.</td></tr>
                             ) : (
                               equiposCat.map(eq => (
                                 <tr key={eq.id}>
@@ -135,6 +185,12 @@ function Reportes() {
                                   <td>{eq.descripcion}</td>
                                   <td>{eq.marca}</td>
                                   <td>{eq.modelo}</td>
+                                  <td>
+                                    <Button variant="warning" size="sm" onClick={() => handleEditarEquipo(eq)} style={{ borderRadius: 20, fontWeight: 600 }}>Editar</Button>
+                                  </td>
+                                  <td>
+                                    <Button variant="danger" size="sm" onClick={() => handleBorrarEquipo(eq)} style={{ borderRadius: 20, fontWeight: 600 }}>Borrar</Button>
+                                  </td>
                                 </tr>
                               ))
                             )}
@@ -278,6 +334,26 @@ function Reportes() {
           </Card>
         </Tab>
       </Tabs>
+      <EditarEquipo
+        show={showEditModal}
+        handleClose={handleCloseEditModal}
+        equipo={equipoAEditar}
+        onEquipoEditado={handleEquipoEditado}
+      />
+      <Modal show={showDeleteModal} onHide={handleCloseDeleteModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar borrado</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Estás seguro de que deseas borrar este equipo?
+          <br />
+          <strong>{equipoABorrar?.nombre}</strong>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseDeleteModal}>Cancelar</Button>
+          <Button variant="danger" onClick={confirmarBorrarEquipo}>Borrar</Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
